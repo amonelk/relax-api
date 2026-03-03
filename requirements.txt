@@ -27,3 +27,10 @@ pydub
 SpeechRecognition
 azure-ai-documentintelligence
 azure-identity
+
+# image toolkit dependencies
+Pillow>=10.0.0
+
+# qrcode toolkit dependencies
+qrcode[pil]>=7.4.0
+# pyzbar>=0.1.9  # Optional: for QR code decode (requires libzbar system library)

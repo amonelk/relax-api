@@ -10,11 +10,18 @@ from app.core.errors import ToolNotFoundError
 REPO_ROOT = Path(__file__).resolve().parents[3]
 TOOL_CORE_PATHS = {
     "markitdown": REPO_ROOT / "services" / "markitdown" / "src" / "markitdown_tool" / "core.py",
+    "image": REPO_ROOT / "services" / "image" / "src" / "image_tool" / "core.py",
+    "qrcode": REPO_ROOT / "services" / "qrcode" / "src" / "qrcode_tool" / "core.py",
 }
 TOOL_FUNC_NAMES = {
     "markitdown": "execute_markitdown",
+    "image": "execute_image",
+    "qrcode": "execute_qrcode",
 }
-_CACHE: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {}
+# 标记哪些工具需要 action 参数
+MULTI_ACTION_TOOLS = {"image", "qrcode"}
+
+_CACHE: dict[str, Callable[..., dict[str, Any]]] = {}
 
 
 def _load_core_module(tool_name: str):
@@ -32,7 +39,13 @@ def _load_core_module(tool_name: str):
     return module
 
 
-def get_executor(tool_name: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
+def get_executor(tool_name: str) -> Callable[..., dict[str, Any]]:
+    """
+    获取工具执行器。
+
+    对于多 action 工具 (image, qrcode)，返回签名: (action: str, payload: dict) -> dict
+    对于单 action 工具 (markitdown)，返回签名: (payload: dict) -> dict
+    """
     if tool_name in _CACHE:
         return _CACHE[tool_name]
 
