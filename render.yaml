@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: relax-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --app-dir renderapi --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: true

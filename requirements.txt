@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pytest
+httpx
+pyyaml
+python-multipart
+-e ./services/markitdown/upstream/packages/markitdown[all]
