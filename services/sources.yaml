@@ -1,5 +1,0 @@
-tools:
-  - id: markitdown
-    repo_url: "https://github.com/microsoft/markitdown.git"
-    branch: "main"
-    local_path: "services/markitdown/upstream"
