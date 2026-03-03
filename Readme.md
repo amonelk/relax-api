@@ -13,7 +13,7 @@ relax-api/
 │       ├── api/        # 路由与接口定义
 │       ├── core/       # 错误处理、响应封装
 │       ├── schemas/    # 请求/响应数据结构
-│       └── services/   # 工具加载与调用
+│       └── loaders/    # 工具模块动态加载
 ├── services/           # 各工具的源码封装
 │   └── markitdown/     # markitdown 工具
 ├── docs/               # API 接口文档（中英文）

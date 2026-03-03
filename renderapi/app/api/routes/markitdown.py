@@ -5,7 +5,7 @@ from typing import Literal
 from app.core.errors import AppError
 from app.core.response import ok_response
 from app.schemas.common import ApiResponse
-from app.services.tool_loader import get_executor
+from app.loaders.tool_loader import get_executor
 
 router = APIRouter()
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
