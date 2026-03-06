@@ -2,57 +2,36 @@
 
 ## 1. Overview
 
-The `qrcode` service provides QR code generation and decoding capabilities through HTTP endpoints.
+The `qrcode` service provides QR code generation and decoding through HTTP endpoints.
 
 - **Base URL**: `https://relax-api.onrender.com`
 - **Endpoints**:
-  - `GET /api/v1/tools/qrcode/generate` - Generate QR code
-  - `POST /api/v1/tools/qrcode/decode` - Decode QR code from image
-- **Request types**:
-  - `GET` with query parameters (generate)
-  - `multipart/form-data` (decode)
+  - `GET /api/v1/tools/qrcode/generate` — Generate QR code
+  - `POST /api/v1/tools/qrcode/decode` — Decode QR code from image
+
+---
 
 ## 2. Endpoints
 
-### 2.1 Generate QR Code
+### `GET /api/v1/tools/qrcode/generate` — Generate QR Code
 
-- **Method**: `GET`
-- **Path**: `/api/v1/tools/qrcode/generate`
-- **Description**: Generate a QR code image from text content
-- **Output formats**: PNG, JPEG, WebP
+**Description**: Generate a QR code image from text content. Output formats: PNG, JPEG, WebP.
 
-### 2.2 Decode QR Code
-
-- **Method**: `POST`
-- **Path**: `/api/v1/tools/qrcode/decode`
-- **Description**: Extract QR code content from an image
-- **Note**: Requires `pyzbar` library with system `libzbar` dependency
-
-## 3. Request Parameters
-
-### 3.1 Generate QR Code
-
-Query parameters:
+**Request Parameters (Query String)**
 
 | Field | Type | Required | Default | Constraints |
-|---|---|---:|---|---|
-| `text` | string | Yes | - | Content to encode (URL-encode if needed) |
-| `size` | int | No | `300` | Image size in pixels (100-1000) |
+|---|---|---|---|---|
+| `text` | string | Yes | — | Content to encode; URL-encode if it contains special characters |
+| `size` | int | No | `300` | Image size in pixels (100–1000) |
 | `format` | string | No | `png` | `png` / `jpeg` / `webp` |
 
-### 3.2 Decode QR Code
+**Sample Request URL:**
 
-Form fields:
+```
+GET https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=https://example.com&size=300&format=png
+```
 
-| Field | Type | Required | Default | Constraints |
-|---|---|---:|---|---|
-| `file` | File | Yes | - | Image containing QR code |
-
-Upload limit: **10MB**
-
-## 4. Response Schema
-
-### 4.1 Generate Response
+**Response:**
 
 ```json
 {
@@ -69,19 +48,35 @@ Upload limit: **10MB**
 }
 ```
 
-Field details:
-
 | Field | Type | Description |
 |---|---|---|
 | `data.image` | string | Base64-encoded QR code image |
 | `data.format` | string | Output format |
-| `data.mime_type` | string | MIME type for the image |
+| `data.mime_type` | string | MIME type of the image |
 | `data.text` | string | Original encoded content |
 | `data.size` | int | Image size in pixels |
 
-### 4.2 Decode Response
+---
 
-Success (QR code found):
+### `POST /api/v1/tools/qrcode/decode` — Decode QR Code
+
+**Description**: Extract QR code content from an uploaded image. Requires `pyzbar` with system `libzbar` dependency.
+
+**Request Parameters (`multipart/form-data`)**
+
+| Field | Type | Required | Constraints |
+|---|---|---|---|
+| `file` | File | Yes | Image containing QR code; max 10MB |
+
+**Request Body:**
+
+```json
+{
+  "file": "<binary: qrcode.png>"
+}
+```
+
+**Response — QR code found:**
 
 ```json
 {
@@ -100,7 +95,7 @@ Success (QR code found):
 }
 ```
 
-No QR code detected:
+**Response — no QR code detected:**
 
 ```json
 {
@@ -114,7 +109,7 @@ No QR code detected:
 }
 ```
 
-Feature unavailable (pyzbar not installed):
+**Response — decode feature unavailable (`pyzbar` not installed):**
 
 ```json
 {
@@ -128,112 +123,86 @@ Feature unavailable (pyzbar not installed):
 }
 ```
 
-## 5. Error Handling
+---
 
-| Scenario | HTTP Status | Business Code | Description |
-|---|---:|---:|---|
+## 3. Error Handling
+
+| Scenario | HTTP Status | Code | Description |
+|---|---|---|---|
 | File larger than 10MB | `413` | `41300` | `Uploaded file is too large. Max size is 10MB.` |
-| Missing required parameter | `422` | - | FastAPI validation error |
+| Missing required parameter | `422` | — | FastAPI validation error |
 | Processing error | `500` | `50000` | Internal server error |
 
-## 6. Examples
+---
 
-### 6.1 Generate QR Code (curl)
+## 4. Examples
 
-Basic usage:
+### Generate QR Code (curl)
+
 ```bash
+# Basic
 curl "https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=https://example.com"
-```
 
-With custom size and format:
-```bash
+# Custom size and format
 curl "https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=https://example.com&size=500&format=webp"
 ```
 
-URL with special characters (URL-encoded):
-```bash
-curl "https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=https%3A%2F%2Fexample.com%2Fpath%3Fid%3D123"
-```
-
-### 6.2 Decode QR Code (curl)
+### Decode QR Code (curl)
 
 ```bash
 curl -X POST "https://relax-api.onrender.com/api/v1/tools/qrcode/decode" \
   -F "file=@qrcode.png"
 ```
 
-### 6.3 Python Example
+### Python Example
 
 ```python
-import requests
-import base64
+import requests, base64
 
 BASE_URL = "https://relax-api.onrender.com/api/v1/tools/qrcode"
 
-# Generate QR code
-resp = requests.get(
-    f"{BASE_URL}/generate",
-    params={
-        "text": "https://example.com",
-        "size": 400,
-        "format": "png"
-    }
-)
+# Generate
+resp = requests.get(f"{BASE_URL}/generate", params={"text": "https://example.com", "size": 400})
 result = resp.json()
-
-# Save QR code image
 img_data = base64.b64decode(result["data"]["image"])
 with open("qrcode.png", "wb") as f:
     f.write(img_data)
-print(f"QR code saved: {result['data']['text']}")
 
-# Decode QR code
+# Decode
 with open("qrcode.png", "rb") as f:
-    resp = requests.post(
-        f"{BASE_URL}/decode",
-        files={"file": f}
-    )
+    resp = requests.post(f"{BASE_URL}/decode", files={"file": f})
 result = resp.json()
-if result["data"]["results"]:
-    print(f"Decoded: {result['data']['results'][0]['data']}")
-else:
-    print(f"Error: {result['data'].get('error', 'Unknown')}")
+print(result["data"]["results"])
 ```
 
-### 6.4 JavaScript Example
+### JavaScript Example
 
 ```javascript
-// Generate QR code
+// Generate
 const text = encodeURIComponent("https://example.com");
-const url = `https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=${text}&size=300`;
-
-fetch(url)
+fetch(`https://relax-api.onrender.com/api/v1/tools/qrcode/generate?text=${text}&size=300`)
   .then(res => res.json())
   .then(data => {
-    const img = document.createElement('img');
+    const img = document.createElement("img");
     img.src = `data:${data.data.mime_type};base64,${data.data.image}`;
     document.body.appendChild(img);
   });
 
-// Decode QR code
+// Decode
 const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-fetch('https://relax-api.onrender.com/api/v1/tools/qrcode/decode', {
-  method: 'POST',
-  body: formData
-})
+formData.append("file", fileInput.files[0]);
+fetch("https://relax-api.onrender.com/api/v1/tools/qrcode/decode", { method: "POST", body: formData })
   .then(res => res.json())
   .then(data => console.log(data.data.results));
 ```
 
-## 7. Limits and Notes
+---
 
-- **Maximum file size**: 10MB for decode endpoint
-- **QR code size**: 100-1000 pixels for generation
-- **Decode feature**: Requires `pyzbar` library with system `libzbar` dependency
-  - May not work on all hosting platforms (e.g., Render free tier)
-  - Check `data.error` field in response for availability
-- **Multiple QR codes**: Decode endpoint can detect multiple QR codes in a single image
-- **Text encoding**: For URLs with special characters, use URL encoding
-- **Error correction**: Generated QR codes use medium error correction level (M)
+## 5. Limits and Notes
+
+- Maximum file size for decode: **10MB**
+- QR code size range for generate: **100–1000 pixels**
+- Decode requires `pyzbar` library with system `libzbar`; check `data.error` if unavailable
+- Multiple QR codes in a single image are all returned in `data.results`
+- For URLs with special characters, apply URL encoding in query parameters
+- Generated QR codes use medium error correction level (M)
