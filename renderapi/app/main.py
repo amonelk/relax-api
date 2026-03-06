@@ -68,6 +68,7 @@ def create_app() -> FastAPI:
 
     @app.get("/readyz")
     def readyz() -> dict:
+        logger.info("%s %s %d %.0fms", "ready", "/ready", "200", "1")
         return ok_response(data={"status": "ready"})
 
     return app
